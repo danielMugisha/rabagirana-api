@@ -19,6 +19,7 @@ app.get('/api/todos', async(req,res)=>{
 
 app.post('/api/create', async(req,res)=>{
     const record = req.body
+    await Todo.create(record)
     res.status(200).json({status: 'OK', data: record})
 })
 
