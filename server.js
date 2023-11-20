@@ -1,26 +1,21 @@
+require('./config/db')
 const express = require('express')
-const path = require('path')
+const cors = require('cors')
 const bodyParser = require('body-parser')
-const mongoose = require('mongoose')
-const Todo = require('./models/todo')
+const authRouter = require('./middleware/auth/auth')
+const Manna = require('./api/manna/router')
+const Event = require('./api/event/router')
+const PORT = 3000
 
-
-const app = express()
-mongoose.connect('mongodb://localhost/rabagirana')
-app.use('/', express.static(path.resolve(__dirname, 'static')))
+const app = express();
 
 app.use(bodyParser.json())
+app.use(cors({origin: "*"}));
 
+app.use('/api/auth', authRouter)
+app.use('/api/manna', Manna)
+app.use('/api/event', Event)
 
-app.get('/api/todos', async(req,res)=>{
-    const records = await Todo.find({})
-    res.status(200).json(records)
+app.listen(PORT, ()=>{
+    console.log(`Server running on port ${PORT}`)
 })
-
-app.post('/api/create', async(req,res)=>{
-    const record = req.body
-    await Todo.create(record)
-    res.status(200).json({status: 'OK', data: record})
-})
-
-app.listen('3001', ()=> {console.log('server running')})
