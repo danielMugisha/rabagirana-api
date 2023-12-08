@@ -2,9 +2,8 @@ const Manna = require ('./repo')
 //import Response from '../../utils/Responses';
 
 exports.create = async (req, res) => {
-    console.log(req)
     const {title, summary, content, author} = req.body;
-    const featuredImage = req.file.filename;
+    const featuredImage = req.file.path;
     title.trim();
     summary.trim();
     content.trim();
@@ -34,8 +33,7 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
     const mannaId = req.params.mannaId;
     const {title, summary, content, author} = req.body;
-    const featuredImage = req.file.filename;
-    Manna.update(mannaId, title, summary, content, author, featuredImage)
+    Manna.update(mannaId, title, summary, content, author)
         .then(results => {
             res.status(200).json({
             status:"UPDATED", 

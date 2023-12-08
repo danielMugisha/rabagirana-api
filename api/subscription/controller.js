@@ -7,7 +7,6 @@ exports.create = async (req, res) => {
 
   Subscription.create(email, status)
     .then((results) => {
-        console.log(results);
         res.status(201).json({
           status: "SUBSUBSCRIBED",
           message: "subscription created successfully",

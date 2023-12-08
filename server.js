@@ -6,12 +6,13 @@ const authRouter = require('./middleware/auth/auth')
 const Manna = require('./api/manna/router')
 const Event = require('./api/event/router')
 const Subscription = require('./api/subscription/router')
-const PORT = 3000
+const PORT = process.env.PORT || 4000;
 
 const app = express();
 
 app.use(bodyParser.json())
 app.use(cors({origin: "*"}));
+app.use('/uploads', express.static('uploads'))
 
 app.use('/api/auth', authRouter)
 app.use('/api/manna', Manna)
