@@ -2,18 +2,18 @@ const Event = require("./model");
 
 exports.create = async (
   title,
-  summary,
   startDate,
   endDate,
   registrationForm,
   featuredImage,
   featuredPdf
 ) => {
+  const start = Date.parse(startDate);
+  const end = Date.parse(endDate);
   const newEvent = new Event({
     title,
-    summary,
-    startDate,
-    endDate,
+    startDate: start,
+    endDate: end,
     registrationForm,
     featuredImage,
     featuredPdf,
@@ -34,19 +34,18 @@ exports.create = async (
 exports.update = async (
   eventId,
   title,
-  summary,
   startDate,
   endDate,
-  registrationForm,
+  registrationForm
 ) => {
-    var currentItem = await Event.findById(eventId);
+    try {
+  var currentItem = await Event.findById(eventId);
   var newImage = currentItem.featuredImage;
   var newDoc = currentItem.featuredPdf;
   const start = Date.parse(startDate);
   const end = Date.parse(endDate);
   return await Event.findByIdAndUpdate(eventId, {
     title,
-    summary,
     start,
     end,
     registrationForm,
@@ -54,14 +53,15 @@ exports.update = async (
     newDoc,
   })
     .then((result) => {
-        return result;
-    })
-    .catch((err) => {
+      return result;
+    });
+}
+    catch(err) {
       console.log(err);
       return {
-        message: "failed to save event",
+        message: "failed to update event",
       };
-    });
+    };
 };
 
 exports.getAll = async () => {

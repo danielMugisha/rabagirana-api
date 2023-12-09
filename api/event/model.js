@@ -3,7 +3,6 @@ const Schema  = mongoose.Schema
 
 const eventSchema = new Schema({
     title:{type:String, required:true},
-    summary:{type: String, required: true},
     startDate:{type: Number, required: true},
     endDate:{type: Number, required:true},
     registrationForm : String,

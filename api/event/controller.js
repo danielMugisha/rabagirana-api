@@ -2,7 +2,7 @@ const Event = require("./repo");
 //import Response from '../../utils/Responses';
 
 exports.create = async (req, res) => {
-  const { title, summary, startDate, endDate, registrationForm } = req.body;
+  const { title, startDate, endDate, registrationForm } = req.body;
   const Image = req.files.find((file) => {
     return file.fieldname === "featuredImage";
   });
@@ -12,11 +12,10 @@ exports.create = async (req, res) => {
   });
   const featuredPdf = Pdf.path;
   title.trim();
-  summary.trim();
   registrationForm.trim();
 
 
-  if (title == "" || summary == "" || startDate == "") {
+  if (title == "" || startDate == "") {
     res.status(400).json({
       status: "BAD REQUEST",
       message: "Empty fields",
@@ -25,7 +24,6 @@ exports.create = async (req, res) => {
 
   Event.create(
     title,
-    summary,
     startDate,
     endDate,
     registrationForm,
@@ -49,11 +47,10 @@ exports.create = async (req, res) => {
 
 exports.update = async (req, res) => {
   const eventId = req.params.eventId;
-  const { title, summary, startDate, endDate, registrationForm } = req.body;
+  const { title, startDate, endDate, registrationForm } = req.body;
   Event.update(
     eventId,
     title,
-    summary,
     startDate,
     endDate,
     registrationForm,
