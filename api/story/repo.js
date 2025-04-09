@@ -1,50 +1,45 @@
 const Story = require("./model");
+const Logger = require("../../utils/logger");
 
 exports.create = async (title, summary, content, author, featuredImage) => {
-  const newStory = new Story({
-    title,
-    summary,
-    content,
-    author,
-    featuredImage,
-  });
-  newStory
-    .save()
-    .then((result) => {
-      return result;
-    })
-    .catch((error) => {
-      console.log(error);
-      return {
-        message: "failed to save story",
-      };
-    });
-};
-
-exports.update = async (
-  storyId,
-  title,
-  summary,
-  content,
-  author
-) => {
   try {
-    var currentItem = await Story.findById(storyId);
-    var newImage = currentItem.featuredImage;
-    return await Story.findByIdAndUpdate(storyId, {
+    const newStory = new Story({
       title,
       summary,
       content,
       author,
-      newImage,
-    }).then((result) => {
-      return result;
+      featuredImage,
     });
-  } catch (err) {
-    console.log(err);
-      return {
-        message: "failed to update story",
-      };
+    
+    return await newStory.save();
+  } catch (error) {
+    Logger.error("Error saving story", error);
+    throw error;
+  }
+};
+
+exports.update = async (storyId, title, summary, content, author, featuredImage) => {
+  try {
+    const updateData = { title, summary, content, author };
+    
+    if (featuredImage) {
+      updateData.featuredImage = featuredImage;
+    }
+    
+    const story = await Story.findByIdAndUpdate(
+      storyId, 
+      updateData,
+      { new: true, runValidators: true }
+    );
+    
+    if (!story) {
+      throw new Error('Story not found');
+    }
+    
+    return story;
+  } catch (error) {
+    Logger.error(`Error updating story with ID ${storyId}`, error);
+    throw error;
   }
 };
 
@@ -52,22 +47,33 @@ exports.getAll = async () => {
   try {
     return await Story.find().sort({ createdAt: -1 });
   } catch (error) {
+    Logger.error("Error getting all stories", error);
     throw error;
   }
 };
 
 exports.getById = async (storyId) => {
   try {
-    return await Story.findById(storyId);
+    const story = await Story.findById(storyId);
+    if (!story) {
+      throw new Error('Story not found');
+    }
+    return story;
   } catch (error) {
+    Logger.error(`Error getting story with ID ${storyId}`, error);
     throw error;
   }
 };
 
 exports.delete = async (storyId) => {
   try {
-    return await Story.findByIdAndDelete(storyId);
+    const story = await Story.findByIdAndDelete(storyId);
+    if (!story) {
+      throw new Error('Story not found');
+    }
+    return story;
   } catch (error) {
+    Logger.error(`Error deleting story with ID ${storyId}`, error);
     throw error;
   }
 };

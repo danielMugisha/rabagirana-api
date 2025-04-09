@@ -1,22 +1,31 @@
-const Subscription = require("./repo");
+const SubscriptionRepo = require("./repo");
+const ApiResponse = require("../../utils/responses");
+const Logger = require("../../utils/logger");
 
 exports.create = async (req, res) => {
-  let { email, status } = req.body;
-  email.trim();
-  status.trim();
+  try {
+    const { email, status } = req.body;
+    
+    if (!email || !status) {
+      return ApiResponse.badRequest(res, "Email and status are required");
+    }
 
-  Subscription.create(email, status)
-    .then((results) => {
-        res.status(201).json({
-          status: "SUBSUBSCRIBED",
-          message: "subscription created successfully",
-        });
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500).json({
-        status: "INTERNAL SERVER ERROR",
-        message: "an error occured while subscribing",
-      });
-    });
+    const trimmedEmail = email.trim();
+    const trimmedStatus = status.trim();
+    
+    // Email validation regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      return ApiResponse.badRequest(res, "Invalid email format");
+    }
+
+    const result = await SubscriptionRepo.create(trimmedEmail, trimmedStatus);
+    return ApiResponse.created(res, "Subscription created successfully", result);
+  } catch (err) {
+    Logger.error("Error in subscription controller", err);
+    return ApiResponse.error(
+      res, 
+      err.message || "An error occurred while subscribing"
+    );
+  }
 };

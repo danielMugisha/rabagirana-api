@@ -1,144 +1,154 @@
-const Event = require("./repo");
-//import Response from '../../utils/Responses';
+const EventRepo = require("./repo");
+const ApiResponse = require("../../utils/responses");
+const Logger = require("../../utils/logger");
 
 exports.create = async (req, res) => {
-  const { title, startDate, endDate, registrationForm } = req.body;
-  const Image = req.files.find((file) => {
-    return file.fieldname === "featuredImage";
-  });
-  const featuredImage = Image.path;
-  const Pdf = req.files.find((file) => {
-    return file.fieldname === "featuredPdf";
-  });
-  const featuredPdf = Pdf.path;
-  title.trim();
-  registrationForm.trim();
-
-
-  if (title == "" || startDate == "") {
-    res.status(400).json({
-      status: "BAD REQUEST",
-      message: "Empty fields",
-    });
+  try {
+    const { title, startDate, endDate, registrationForm } = req.body;
+    
+    if (!req.files || !req.files.featuredImage || !req.files.featuredPdf) {
+      return ApiResponse.badRequest(res, "Both featuredImage and featuredPdf files are required");
+    }
+    
+    const featuredImage = req.files.featuredImage[0].path;
+    const featuredPdf = req.files.featuredPdf[0].path;
+    
+    // Validate inputs
+    if (!title?.trim() || !startDate || !endDate) {
+      return ApiResponse.badRequest(res, "Title, start date and end date are required");
+    }
+    
+    // Validate dates
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return ApiResponse.badRequest(res, "Invalid date format");
+    }
+    
+    if (start > end) {
+      return ApiResponse.badRequest(res, "End date must be after start date");
+    }
+    
+    const registrationFormTrimmed = registrationForm?.trim() || "";
+    
+    const result = await EventRepo.create(
+      title.trim(),
+      startDate,
+      endDate,
+      registrationFormTrimmed,
+      featuredImage,
+      featuredPdf
+    );
+    
+    return ApiResponse.created(res, "Event created successfully", result);
+  } catch (err) {
+    Logger.error("Error creating event", err);
+    return ApiResponse.error(res, "An error occurred while saving event");
   }
-
-  Event.create(
-    title,
-    startDate,
-    endDate,
-    registrationForm,
-    featuredImage,
-    featuredPdf
-  )
-    .then((results) => {
-      res.status(201).json({
-        status: "CREATED",
-        message: "Event created successfully",
-      });
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500).json({
-        status: "INTERNAL SERVER ERROR",
-        message: "an error occured while saving event",
-      });
-    });
 };
 
 exports.update = async (req, res) => {
-  const eventId = req.params.eventId;
-  const { title, startDate, endDate, registrationForm } = req.body;
-  Event.update(
-    eventId,
-    title,
-    startDate,
-    endDate,
-    registrationForm,
-  )
-    .then((results) => {
-      res.status(200).json({
-        status: "UPDATED",
-        message: "Event updated successfully",
-      });
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500).json({
-        status: "INTERNAL SERVER ERROR",
-        message: "an error occured while updating an event",
-      });
-    });
+  try {
+    const eventId = req.params.eventId;
+    const { title, startDate, endDate, registrationForm } = req.body;
+    
+    let featuredImage = undefined;
+    let featuredPdf = undefined;
+    
+    if (req.files) {
+      if (req.files.featuredImage) {
+        featuredImage = req.files.featuredImage[0].path;
+      }
+      
+      if (req.files.featuredPdf) {
+        featuredPdf = req.files.featuredPdf[0].path;
+      }
+    }
+    
+    // Validate inputs
+    if (!title?.trim() || !startDate || !endDate) {
+      return ApiResponse.badRequest(res, "Title, start date and end date are required");
+    }
+    
+    // Validate dates
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return ApiResponse.badRequest(res, "Invalid date format");
+    }
+    
+    if (start > end) {
+      return ApiResponse.badRequest(res, "End date must be after start date");
+    }
+    
+    const registrationFormTrimmed = registrationForm?.trim() || "";
+    
+    const result = await EventRepo.update(
+      eventId,
+      title.trim(),
+      startDate,
+      endDate,
+      registrationFormTrimmed,
+      featuredImage,
+      featuredPdf
+    );
+    
+    return ApiResponse.success(res, "Event updated successfully", result);
+  } catch (err) {
+    Logger.error(`Error updating event ${req.params.eventId}`, err);
+    if (err.message === 'Event not found') {
+      return ApiResponse.notFound(res, "Event not found");
+    }
+    return ApiResponse.error(res, "An error occurred while updating event");
+  }
 };
 
 exports.getAll = async (req, res) => {
-  Event.getAll()
-    .then((results) => {
-      res.status(200).json({
-        status: "SUCCESS",
-        message: "All events retrieved successfully",
-        data: results,
-      });
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500).json({
-        status: "INTERNAL SERVER ERROR",
-        message: "an error occured while getting all events",
-      });
-    });
+  try {
+    const results = await EventRepo.getAll();
+    return ApiResponse.success(res, "All events retrieved successfully", results);
+  } catch (err) {
+    Logger.error("Error retrieving all events", err);
+    return ApiResponse.error(res, "An error occurred while getting all events");
+  }
 };
 
 exports.getById = async (req, res) => {
-  const eventId = req.params.eventId;
-  Event.getById(eventId)
-    .then((results) => {
-      res.status(200).json({
-        status: "SUCCESS",
-        message: "event retrieved successfully",
-        data: results,
-      });
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500).json({
-        status: "INTERNAL SERVER ERROR",
-        message: "an error occured while getting event",
-      });
-    });
+  try {
+    const eventId = req.params.eventId;
+    const result = await EventRepo.getById(eventId);
+    return ApiResponse.success(res, "Event retrieved successfully", result);
+  } catch (err) {
+    Logger.error(`Error retrieving event ${req.params.eventId}`, err);
+    if (err.message === 'Event not found') {
+      return ApiResponse.notFound(res, "Event not found");
+    }
+    return ApiResponse.error(res, "An error occurred while getting event");
+  }
 };
 
 exports.getLastThree = async (req, res) => {
-  Event.getLastThree()
-    .then((results) => {
-      res.status(200).json({
-        status: "SUCCESS",
-        message: "Latest events retrieved successfully",
-        data: results,
-      });
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500).json({
-        status: "INTERNAL SERVER ERROR",
-        message: "an error occured while getting the latest events",
-      });
-    });
+  try {
+    const results = await EventRepo.getLastThree();
+    return ApiResponse.success(res, "Latest events retrieved successfully", results);
+  } catch (err) {
+    Logger.error("Error retrieving latest events", err);
+    return ApiResponse.error(res, "An error occurred while getting the latest events");
+  }
 };
 
 exports.delete = async (req, res) => {
-  const eventId = req.params.eventId;
-  Event.delete(eventId)
-    .then((results) => {
-      res.status(200).json({
-        status: "DELETED",
-        message: "Event deleted successfully",
-      });
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500).json({
-        status: "INTERNAL SERVER ERROR",
-        message: "an error occured while deleting an Event",
-      });
-    });
+  try {
+    const eventId = req.params.eventId;
+    await EventRepo.delete(eventId);
+    return ApiResponse.success(res, "Event deleted successfully");
+  } catch (err) {
+    Logger.error(`Error deleting event ${req.params.eventId}`, err);
+    if (err.message === 'Event not found') {
+      return ApiResponse.notFound(res, "Event not found");
+    }
+    return ApiResponse.error(res, "An error occurred while deleting event");
+  }
 };

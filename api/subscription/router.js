@@ -4,6 +4,4 @@ const router = express.Router();
 
 router.post('/subscribe', Subscription.create);
 
-
-
 module.exports = router;
