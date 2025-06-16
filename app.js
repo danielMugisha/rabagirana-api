@@ -11,6 +11,7 @@ const errorHandler = require('./middleware/errorHandler');
 const Logger = require('./utils/logger');
 
 // Import routes
+const authRoutes = require('./middleware/auth/auth');
 const storyRoutes = require('./api/story/router');
 const mannaRoutes = require('./api/manna/router');
 const eventRoutes = require('./api/event/router');
@@ -30,6 +31,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
+app.use('/auth', authRoutes);
 app.use('/api/stories', storyRoutes);
 app.use('/api/manna', mannaRoutes);
 app.use('/api/events', eventRoutes);
