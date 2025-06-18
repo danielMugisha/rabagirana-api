@@ -10,7 +10,8 @@ exports.create = async (req, res) => {
             return ApiResponse.badRequest(res, "Featured image is required");
         }
         
-        const featuredImage = req.file.path;
+        // Clean up the file path to avoid double 'uploads'
+        const featuredImage = req.file.path.replace(/^uploads[\/\\]+/, '');
         
         // Validate inputs
         if(!title?.trim() || !summary?.trim() || !content?.trim() || !author?.trim()) {
@@ -36,7 +37,9 @@ exports.update = async (req, res) => {
     try {
         const mannaId = req.params.mannaId;
         const {title, summary, content, author} = req.body;
-        const featuredImage = req.file?.path;
+        
+        // Clean up the file path if a new image is uploaded
+        const featuredImage = req.file?.path ? req.file.path.replace(/^uploads[\/\\]+/, '') : undefined;
         
         // Validate inputs
         if(!title?.trim() || !summary?.trim() || !content?.trim() || !author?.trim()) {

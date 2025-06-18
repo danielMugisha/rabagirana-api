@@ -9,6 +9,7 @@ const helmet = require('helmet');
 const validateEnv = require('./config/envValidator');
 const errorHandler = require('./middleware/errorHandler');
 const Logger = require('./utils/logger');
+const path = require('path');
 
 // Import routes
 const authRoutes = require('./middleware/auth/auth');
@@ -25,10 +26,29 @@ validateEnv();
 const app = express();
 
 // Middlewares
-app.use(helmet()); // Security headers
-app.use(cors());
+app.use(helmet({
+  crossOriginResourcePolicy: false,
+  contentSecurityPolicy: false
+}));
+
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Content-Length', 'Content-Type']
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Configure static file serving for uploads
+app.use('/uploads', (req, res, next) => {
+  res.set({
+    'Access-Control-Allow-Origin': '*',
+    'Cross-Origin-Resource-Policy': 'cross-origin',
+    'Cache-Control': 'public, max-age=31536000'
+  });
+  next();
+}, express.static(path.join(__dirname, 'uploads')));
 
 // Routes
 app.use('/auth', authRoutes);
@@ -37,9 +57,6 @@ app.use('/api/manna', mannaRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/resources', resourceRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
-
-// Serve uploaded files statically if needed
-app.use('/uploads', express.static('uploads'));
 
 // Root route
 app.get('/', (req, res) => {
