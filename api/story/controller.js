@@ -10,7 +10,7 @@ exports.create = async (req, res) => {
             return ApiResponse.badRequest(res, "Featured image is required");
         }
         
-        const featuredImage = req.file.path;
+        const featuredImage = req.file.path.replace(/^uploads[\/\\]+/, '');
         
         // Validate inputs
         if(!title?.trim() || !summary?.trim() || !content?.trim() || !author?.trim()) {
