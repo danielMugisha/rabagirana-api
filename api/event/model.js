@@ -7,7 +7,7 @@ const eventSchema = new Schema({
     endDate:{type: Number, required:true},
     registrationForm:{type: String, trim: true},
     featuredImage:{type: String, required: true},
-    featuredPdf:{type: String, required: true}
+    featuredPdf:{type: String}
 }, {
     timestamps: true // Adds createdAt and updatedAt timestamps
 });

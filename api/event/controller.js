@@ -6,12 +6,12 @@ exports.create = async (req, res) => {
   try {
     const { title, startDate, endDate, registrationForm } = req.body;
     
-    if (!req.files || !req.files.featuredImage || !req.files.featuredPdf) {
-      return ApiResponse.badRequest(res, "Both featuredImage and featuredPdf files are required");
+    if (!req.files || !req.files.featuredImage) {
+      return ApiResponse.badRequest(res, "Featured image is required");
     }
     
     const featuredImage = req.files.featuredImage[0].path;
-    const featuredPdf = req.files.featuredPdf[0].path;
+    const featuredPdf = req.files.featuredPdf ? req.files.featuredPdf[0].path : null;
     
     // Validate inputs
     if (!title?.trim() || !startDate || !endDate) {
